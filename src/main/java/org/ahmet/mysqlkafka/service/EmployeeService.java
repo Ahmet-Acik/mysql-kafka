@@ -9,9 +9,11 @@ import java.util.List;
 @Service
 public class EmployeeService {
     private final EmployeeRepository employeeRepository;
+    private final KafkaProducerService kafkaProducerService;
 
-    public EmployeeService(EmployeeRepository employeeRepository) {
+    public EmployeeService(EmployeeRepository employeeRepository, KafkaProducerService kafkaProducerService) {
         this.employeeRepository = employeeRepository;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     public List<Employee> getAllEmployees() {
@@ -19,6 +21,8 @@ public class EmployeeService {
     }
 
     public Employee saveEmployee(Employee employee) {
-        return employeeRepository.save(employee);
+        Employee savedEmployee = employeeRepository.save(employee);
+        kafkaProducerService.sendMessage("employee_topic", "Employee saved: " + savedEmployee.getName());
+        return savedEmployee;
     }
 }
